@@ -2,10 +2,7 @@ import sys
 
 rl = lambda : sys.stdin.readline()
 #---------------------------------------------
-def make_tilemap(grid):
-    h = len(grid)
-    w = len(grid[0])
-#     print("h , w = ", h, w)
+def make_tilemap(grid , h, w):
     map = dict()
     for i in range(h):
         for j in range(w):
@@ -19,101 +16,114 @@ def make_tilemap(grid):
                 map[key] = value_list
     return map
 
-def is_empty_x(y, src_x,dst_x):
+def make_tilemap_arr(grid, h, w):
+    map = []
+    for i in range(h):
+        for j in range(w):
+            tile_info = grid[i][j]
+            if tile_info != '.':
+                if not(tile_info in map) : 
+                    map.append(tile_info)
+                    map.append([i,j])
+                else :
+                    idx = map.index(tile_info)
+                    map.insert(idx+1,[i,j])
+    
+    return map
+
+def is_empty_x(grid, y, src_x,dst_x):
     if src_x > dst_x:
-        temp = src_x
-        src_x = dst_x
-        dst_x = temp
+        src_x,dst_x = dst_x,src_x
         
     for i in range(src_x+1,dst_x):
-        if grid[i][y] == '.':
-            pass
-        else:
-            return False
+        if grid[i][y] == '.': pass
+        else: return False
     return True
 
-def is_empty_y(x, src_y,dst_y):
+def is_empty_y(grid, x, src_y,dst_y):
     if src_y > dst_y:
-        temp = src_y
-        src_y = dst_y
-        dst_y = temp
+        src_y,dst_y = dst_y,src_y
+
     for i in range(src_y+1,dst_y):
-        if grid[x][i] == '.':
-            pass
-        else:
-            return False
+        if grid[x][i] == '.': pass
+        else: return False
     return True
 
-def make_empty_points(src, h ,w):
-    empty_points = []
+def make_empty_points(grid, src, h ,w):
     x = src[0]
     y = src[1]
     
     for i in range(x-1,-1,-1):
         if grid[i][y] == '.':
-            empty_points.append([i,y])
+            yield [i,y]
         else : break
     for i in range(x+1,h):
         if grid[i][y] == '.':
-            empty_points.append([i,y])
+            yield [i,y] 
         else : break
     for i in range(y-1,-1,-1):
         if grid[x][i] =='.':
-            empty_points.append([x,i])
+            yield [x,i] 
         else : break    
     for i in range(y+1,w):
         if grid[x][i] == '.':
-            empty_points.append([x,i])
+            yield [x,i] 
         else : break  
-    return empty_points
 
-def link(src, dst, h, w, n):
+def can_link(grid, src, dst, h, w, n):
     if n == 4  : return False 
-    can_go = False
+    link = False
     if src[0] == dst[0]:
-        can_go =  is_empty_y(src[0], src[1], dst[1])
+        link =  is_empty_y(grid, src[0], src[1], dst[1])
     elif src[1] == dst[1]:
-        can_go =  is_empty_x(src[1], src[0], dst[0])
+        link =  is_empty_x(grid, src[1], src[0], dst[0])
     
-    if can_go == True: 
+    if link == True: 
         return True
     else :
-        points = make_empty_points(src, h, w)   
-        for src_element in points:
-            can_go = link(src_element, dst, h,w,n+1)
-            if can_go == True:
+        for src_element in make_empty_points(grid, src, h, w):
+            link = can_link(grid, src_element, dst, h , w,n+1)
+            if link == True:
                 break;
-        return can_go
+        return link
 
-def count_single_move(tile_map,h,w):
-    single_move = 0
+def map_to_list(tile_map):
+    start = False
+    start_index = 0
+    end_index = 0
+    for i in range(len(tile_map)):
+        if tile_map[i] >='A' and tile_map[i] <= 'Z':
+            pass
+        else :
+            if start == False :
+                start = True 
+                start_index = i
+            else : 
+                end_index = i
+                yield tile_map[start_index:end_index]    
+
+def count_link(grid, tile_map,h,w):
+    cnt = 0
     for key in tile_map:
         tile_list = tile_map[key]
-#         print(len(tile_list))
         for src in range(len(tile_list)):
             for dst in range(src+1, len(tile_list)):
-                if link(tile_list[src],tile_list[dst],h,w,1) == True:
-                    single_move += 1
-    return single_move  
+                if can_link(grid, tile_list[src],tile_list[dst],h,w,1) == True:
+                    cnt += 1
+    return cnt  
 #--------------------------------------------------------------------
-
 if __name__ == '__main__':
     repeat = int(rl())
-    grids = []
+    output = []
     for n in range(repeat): 
-        h_w = rl().split()
-        h = int(h_w[0])
-        w = int(h_w[1])
-        
+        h,w = rl().split()
         grid = []
-        for row in range(h):
+ 
+        for row in range(int(h)):
             row = rl().strip('\n')
             grid.append(row)
-    
-        grids.append(grid)
         
-    for grid in grids:
-        h = len(grid)
-        w = len(grid[0])
-        tile_map = make_tilemap(grid)
-        print(count_single_move(tile_map,h,w))
+        tile_map = make_tilemap_arr(grid, int(h), int(w))
+        output.append(count_link(grid, tile_map, int(h), int(w)))
+    print(output)
+
