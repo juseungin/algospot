@@ -1,20 +1,7 @@
-import sys
 
-rl = lambda : sys.stdin.readline()
-#---------------------------------------------
-def make_tilemap(grid , h, w):
-    map = dict()
-    for i in range(h):
-        for j in range(w):
-            key = grid[i][j]
-            if key != '.':
-                value_list = map.get(key)
-                if value_list == None:
-                    value_list = [[i,j]]
-                else:
-                    value_list.append([i,j])
-                map[key] = value_list
-    return map
+
+rt sys
+import cProfile
 
 def make_tilemap_arr(grid, h, w):
     map = []
@@ -30,6 +17,21 @@ def make_tilemap_arr(grid, h, w):
                     map.insert(idx+1,[i,j])
     
     return map
+
+def map_to_list(tile_map):
+    start = False
+    for i in range(len(tile_map)):
+        if type (tile_map[i]) == str:
+            if start == True:
+                start = False
+                yield tile_map[start_index:end_index+1]                
+        else :
+            if start == False :
+                start = True 
+                start_index = i
+            else : 
+                end_index = i
+    yield tile_map[start_index:end_index+1] 
 
 def is_empty_x(grid, y, src_x,dst_x):
     if src_x > dst_x:
@@ -87,32 +89,19 @@ def can_link(grid, src, dst, h, w, n):
                 break;
         return link
 
-def map_to_list(tile_map):
-    start = False
-    start_index = 0
-    end_index = 0
-    for i in range(len(tile_map)):
-        if tile_map[i] >='A' and tile_map[i] <= 'Z':
-            pass
-        else :
-            if start == False :
-                start = True 
-                start_index = i
-            else : 
-                end_index = i
-                yield tile_map[start_index:end_index]    
+
 
 def count_link(grid, tile_map,h,w):
     cnt = 0
-    for key in tile_map:
-        tile_list = tile_map[key]
+    for tile_list in map_to_list(tile_map):
         for src in range(len(tile_list)):
             for dst in range(src+1, len(tile_list)):
                 if can_link(grid, tile_list[src],tile_list[dst],h,w,1) == True:
                     cnt += 1
     return cnt  
-#--------------------------------------------------------------------
-if __name__ == '__main__':
+
+def main():
+    rl = lambda : sys.stdin.readline()
     repeat = int(rl())
     output = []
     for n in range(repeat): 
@@ -125,5 +114,9 @@ if __name__ == '__main__':
         
         tile_map = make_tilemap_arr(grid, int(h), int(w))
         output.append(count_link(grid, tile_map, int(h), int(w)))
-    print(output)
+    for result in output:
+        print(result)
+
+if __name__ == '__main__':
+    cProfile.run('main()')
 
