@@ -1,6 +1,6 @@
 
 
-rt sys
+import sys
 import cProfile
 
 def make_tilemap_arr(grid, h, w):
