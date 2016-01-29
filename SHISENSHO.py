@@ -1,7 +1,7 @@
-
-
 import sys
 import cProfile
+
+cache = {}
 
 def make_tilemap_arr(grid, h, w):
     map = []
@@ -51,44 +51,71 @@ def is_empty_y(grid, x, src_y,dst_y):
         else: return False
     return True
 
-def make_empty_points(grid, src, h ,w):
-    x = src[0]
-    y = src[1]
-    
+def make_empty_points(grid, x, y, h ,w):
+
     for i in range(x-1,-1,-1):
         if grid[i][y] == '.':
-            yield [i,y]
+            yield i,y
         else : break
     for i in range(x+1,h):
         if grid[i][y] == '.':
-            yield [i,y] 
+            yield i,y 
         else : break
     for i in range(y-1,-1,-1):
         if grid[x][i] =='.':
-            yield [x,i] 
+            yield x,i
         else : break    
     for i in range(y+1,w):
         if grid[x][i] == '.':
-            yield [x,i] 
+            yield x,i
         else : break  
 
-def can_link(grid, src, dst, h, w, n):
-    if n == 4  : return False 
-    link = False
-    if src[0] == dst[0]:
-        link =  is_empty_y(grid, src[0], src[1], dst[1])
-    elif src[1] == dst[1]:
-        link =  is_empty_x(grid, src[1], src[0], dst[0])
-    
-    if link == True: 
+def can_link(grid, a_src_x, a_src_y, a_dst_x, a_dst_y, h, w, n):
+    key = (a_src_x, a_src_y, a_dst_x, a_dst_y)
+    if key in cache.keys() and cache[key] < n:
         return True
-    else :
-        for src_element in make_empty_points(grid, src, h, w):
-            link = can_link(grid, src_element, dst, h , w,n+1)
-            if link == True:
-                break;
-        return link
+    if n == 0  : return False
+    if n == 1 : 
+        if not (a_src_x == a_dst_x or a_src_y == a_dst_y): return False
+    link = False
+    if a_src_x == a_dst_x:
+        link =  is_empty_y(grid, a_src_x, a_src_y, a_dst_y)
+    elif a_src_y == a_dst_y:
+        link =  is_empty_x(grid, a_src_y, a_src_x, a_dst_x)   
+    if link == True:
+        cache[key] = 1
+        return True
 
+    for i in range(a_src_x+1,h): #right
+        if grid[i][a_src_y] == '.':
+            if can_link(grid, i, a_src_y,  a_dst_x, a_dst_y, h , w, n-1): 
+                if key in cache.keys() and cache[key] > n-1:
+                    cache[key] = n-1
+                return True
+        else : break   
+    for i in range(a_src_y+1,w): #down
+        if grid[a_src_x][i] == '.':
+            if can_link(grid, a_src_x, i,  a_dst_x, a_dst_y, h , w, n-1): 
+                if key in cache.keys() and cache[key] > n-1:
+                    cache[key] = n-1
+                return True
+        else : break  
+    for i in range(a_src_x-1,-1,-1): #left
+        if grid[i][a_src_y] == '.':
+            if can_link(grid, i, a_src_y,  a_dst_x, a_dst_y, h , w, n-1): 
+                if key in cache.keys() and cache[key] > n-1:
+                    cache[key] = n-1
+                return True
+        else : break
+    for i in range(a_src_y-1,-1,-1): #up
+        if grid[a_src_x][i] =='.':
+            if can_link(grid, a_src_x, i,  a_dst_x, a_dst_y, h , w, n-1): 
+                if key in cache.keys() and cache[key] > n-1:
+                    cache[key] = n-1
+                return True
+        else : break 
+
+    return False
 
 
 def count_link(grid, tile_map,h,w):
@@ -96,7 +123,7 @@ def count_link(grid, tile_map,h,w):
     for tile_list in map_to_list(tile_map):
         for src in range(len(tile_list)):
             for dst in range(src+1, len(tile_list)):
-                if can_link(grid, tile_list[src],tile_list[dst],h,w,1) == True:
+                if can_link(grid, tile_list[src][0], tile_list[src][1], tile_list[dst][0], tile_list[dst][1], h, w, 3) == True:
                     cnt += 1
     return cnt  
 
@@ -118,5 +145,4 @@ def main():
         print(result)
 
 if __name__ == '__main__':
-    cProfile.run('main()')
-
+    main()
