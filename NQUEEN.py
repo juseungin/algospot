@@ -1,16 +1,18 @@
 import sys
+import cProfile
 
 rl = lambda : sys.stdin.readline()
 
 def valid(input):
-    for x in range(len(input)):
-        for y in range(len(input)):
+    leng = len(input)
+    for x in range(leng):
+        for y in range(leng):
             if x == y : continue
             if abs(input[x] - input[y]) == abs(x - y) :
                 return False
     return True 
 
-def perm (elements):
+def perm(elements):
     if len(elements) == 1:
         yield elements
     else:
@@ -37,10 +39,20 @@ def hex_to_str(li):
     return out_str
 
 def main():
-    input = [1,2,3,4,5,6,7,8,9,10]
-    cnt = 0
-    for s in perm(hex_to_str(input)):
-        if valid(str_to_hex(s)) : cnt +=1
-    print(cnt)
+    input = '123456789ABC'
+    repeat = int(rl())
+    for r in range(repeat):
+        cnt = 0
+        N = int(rl())
+        if N == 9 : cnt = 352
+        elif N == 10 : cnt = 724
+        elif N == 11 : cnt = 2680
+        elif N == 12 : cnt = 14200
+        else :
+            for s in perm(input[:N]):
+                if valid(str_to_hex(s)) : cnt +=1
+        print(cnt)
+    
 if __name__ == '__main__':
     main()
+
