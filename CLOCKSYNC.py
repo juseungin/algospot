@@ -2,13 +2,21 @@ import sys
 
 rl = lambda : sys.stdin.readline()
 
-clocks = [12,9,9,12,12,12,12,12,12,12,12,12,12,12,12,12]
-buttons = ((1,2),(3,4))
-# ((0, 1, 2), (3, 7, 9, 11) , (4, 10, 14, 15), (1, 2, 3, 4, 5))
+clocks = []
+buttons = ( (0, 1, 2),
+            (3, 7, 9, 11),
+            (4, 10, 14, 15),
+            (0, 4, 5, 6, 7),
+            (6, 7, 8, 10, 12),
+            (0, 2, 14, 15),
+            (3, 14, 15),
+            (4, 5, 7, 14, 15),
+            (1, 2, 3, 4, 5),
+            (3, 4, 5, 9, 13) )
 
 def is_all_12(clocks):
     for clock in clocks:
-        if clock != 12:
+        if clock != 4:
              return False
     return True
 
@@ -29,13 +37,13 @@ def make_combination(buttons):
     
 def push(temp, indexes, n):
     for index in indexes:
-        temp[index] += int(n) * 3
-        if temp[index] > 12: temp[index] =  temp[index] % 12
+        temp[index] += int(n)
+        if temp[index] > 4: temp[index] =  temp[index] % 4
  
 def push_buttons(buttons):
+    min_move = -1
     for buttons_combi in make_combination(buttons):
-        temp = clocks[:] 
-#         print(buttons_combi)
+        temp = clocks[:]
         for i in range(len(buttons_combi)):
             if buttons_combi[i] != '0' :
                 push(temp, buttons[i], buttons_combi[i])
@@ -43,11 +51,16 @@ def push_buttons(buttons):
             cnt = 0
             for c in buttons_combi:
                 cnt += int(c)
-            print(cnt, 'times move')
+            if min_move < 0 : min_move = cnt
+            elif min_move > cnt : min_move = cnt
+            
+    print(min_move, 'times move')
         
 def main():
-    global buttons
+    global buttons,clocks
+    clocks = rl().split()
+    clocks = [int(i)/3 for i in clocks]
     push_buttons(buttons)
-    
-main()
 
+if __name__ == '__main__':
+    main()
